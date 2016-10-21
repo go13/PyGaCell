@@ -52,8 +52,9 @@ class Hub:
         return self.val if self.src is None else self.src.calc()
 
 
-#class Matcher:
-#    def match(self, l_tree, r_tree):
+class Matcher:
+    def match(self, l_tree, r_tree):
+        pass
 
 
 class Cell:
