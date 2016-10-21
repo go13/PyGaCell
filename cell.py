@@ -18,10 +18,14 @@ class Operation:
 
 class OpLink(Operation):
     hub = None
+
     @classmethod
     def random_operation(cls, hubs):
         op_link = OpLink(hubs)
-        op_link.hub = hubs[0]
+
+        hub_ind = random.randint(0, len(hubs))
+        op_link.hub = hubs[hub_ind]
+
         return op_link
 
     def calc(self):
