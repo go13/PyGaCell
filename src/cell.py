@@ -19,27 +19,11 @@ class Operation:
             2: OpMul.random_operation,
         }[op_ind](hubs)
 
-    def clone_hubs(self, mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node):
-        return [hub.clone_hub_tree(mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node) for hub in self.hubs]
-
-    def clone_node_tree(self, mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node):
-        cloned_hubs = self.clone_hubs(mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node)
-        cloned_node = self.clone(cloned_hubs)
-        node_pairs += [(self, cloned_node)]
-
-        return cloned_node
+    def clone_node_tree(self, mapped_hubs, cross_hub, mount_node):
+        return self.clone([hub.clone_hub_tree(mapped_hubs, cross_hub, mount_node) for hub in self.hubs])
 
     def clone(self, cloned_hubs):
         return NotImplemented
-
-    def clone_tree(self, mapped_hubs):
-        hub_pairs = []
-        in_hub_pairs = []
-        node_pairs = []
-
-        cloned_node = self.clone_node_tree(mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, None, None)
-
-        return cloned_node, hub_pairs, in_hub_pairs, node_pairs
 
 
 class OpLink(Operation):
@@ -99,11 +83,11 @@ class Hub:
 
     def get_random_path(self):
         path = []
-        next = self
-        while next.src:
-            path += [next]
-            hub_ind = random.randint(0, len(next.src.hubs) - 1)
-            next = next.src.hubs[hub_ind]
+        nxt = self
+        while nxt.src:
+            path += [nxt]
+            hub_ind = random.randint(0, len(nxt.src.hubs) - 1)
+            nxt = nxt.src.hubs[hub_ind]
 
         return path
 
@@ -116,16 +100,7 @@ class Hub:
         else:
             return []
 
-    def clone_tree(self, mapped_hubs, cross_hub, mount_node):
-        hub_pairs = []
-        in_hub_pairs = []
-        node_pairs = []
-
-        cloned_hub = self.clone_hub_tree(mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node)
-
-        return cloned_hub, hub_pairs, in_hub_pairs, node_pairs
-
-    def clone_hub_tree(self, mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node):
+    def clone_hub_tree(self, mapped_hubs, cross_hub, mount_node):
         if cross_hub == self:
             hub = Hub()
             hub.src = mount_node
@@ -135,10 +110,8 @@ class Hub:
             else:
                 hub = Hub()
             if self.src:
-                hub.src = self.src.clone_node_tree(mapped_hubs, hub_pairs, in_hub_pairs, node_pairs)
-            else:
-                in_hub_pairs += [(self, hub)]
-        hub_pairs += [(self, hub)]
+                hub.src = self.src.clone_node_tree(mapped_hubs)
+
         return hub
 
 
@@ -189,8 +162,8 @@ class Cell:
             a_hub = a_out_hubs.get_random_hub()
             cross_hub = b_out_hubs.get_random_hub()
 
-            a_small_node_tree, _, _, _ = a_hub.src.clone_tree(mapped_hubs)
-            b_large_hub_tree, _, _, _ = b_out_hubs.clone_tree(mapped_hubs, cross_hub, a_small_node_tree)
+            a_small_node_tree = a_hub.src.clone_node_tree(mapped_hubs, None, None)
+            b_large_hub_tree = b_out_hubs.clone_hub_tree(mapped_hubs, cross_hub, a_small_node_tree)
 
             cell.out_hubs += [b_large_hub_tree]
 
@@ -206,9 +179,9 @@ class Cell:
     def get_outputs(self):
         return [ot.val for ot in self.out_hubs]
 
-    def set_inputs(self, inps):
+    def set_inputs(self, inputs):
         for i in range(0, self.params.i_num):
-            self.in_hubs[i].val = inps[i]
+            self.in_hubs[i].val = inputs[i]
 
     def mutate(self):
         pass
