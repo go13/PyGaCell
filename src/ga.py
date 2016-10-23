@@ -18,9 +18,7 @@ class GA:
         self.population = [Cell.create(params) for i in range(params.population_size)]
 
     def step(self, inputs):
-        self.calc(inputs)
-        self.crossover()
-        self.mutate()
+        self.calc(inputs).crossover().mutate()
 
     def calc(self, inputs):
         for i in self.population:
@@ -28,9 +26,13 @@ class GA:
 
         self.population = sorted(self.population, key=lambda x: x.rating, reverse=True)
 
+        return self
+
     def mutate(self):
         for i in self.population:
             i.mutate()
+
+        return self
 
     def crossover(self):
         new_population = self.population[:self.params.untouchable_number]
@@ -44,6 +46,8 @@ class GA:
             new_population += [cell]
 
         self.population = new_population
+
+        return self
 
     def get_random_best(self):
         total_rating = sum([x.rating for x in self.population])
