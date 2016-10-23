@@ -179,8 +179,8 @@ class Cell:
 
         return cell
 
-    def calc(self, inps):
-        self.set_inputs(inps)
+    def calc(self, inputs):
+        self.set_inputs(inputs)
 
         results = [ot.calc() for ot in self.out_hubs]
 
