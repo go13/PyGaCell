@@ -110,6 +110,15 @@ class Hub:
 
         return hub
 
+    def mutate(self, cell):
+        src_node = self.src
+        if src_node:
+            new_hub = Hub()
+            cell.all_hubs += [new_hub]
+            new_hub.src = src_node
+            op = Operation.random_operation([new_hub])
+            self.src = op
+
 
 class Cell:
     def __init__(self, params):
@@ -188,10 +197,4 @@ class Cell:
     def mutate(self):
         if self.params.mutation_probability > random.random():
             random_hub = self.get_random_hub()
-            src_node = random_hub.src
-            if src_node:
-                new_hub = Hub()
-                self.all_hubs += [new_hub]
-                new_hub.src = src_node
-                op = Operation.random_operation([new_hub])
-                random_hub.src = op
+            random_hub.mutate(self)
