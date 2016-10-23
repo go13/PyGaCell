@@ -136,7 +136,6 @@ class Cell:
 
     @classmethod
     def cross(cls, params, m, f):
-
         if random.random() > 0.5:
             a = m
             b = f
@@ -183,6 +182,10 @@ class Cell:
     def set_inputs(self, inputs):
         for i in range(0, self.params.i_num):
             self.in_hubs[i].val = inputs[i]
+
+    def get_random_hub(self):
+        hub_ind = random.randint(0, len(self.all_hubs) - 1)
+        return self.all_hubs[hub_ind]
 
     def mutate(self):
         pass
