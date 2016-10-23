@@ -19,8 +19,8 @@ class Operation:
             2: OpMul.random_operation,
         }[op_ind](hubs)
 
-    def clone_node_tree(self, mapped_hubs, cross_hub, mount_node):
-        return self.clone([hub.clone_hub_tree(mapped_hubs, cross_hub, mount_node) for hub in self.hubs])
+    def clone_node_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
+        return self.clone([hub.clone_hub_tree(all_hubs, mapped_hubs, cross_hub, mount_node) for hub in self.hubs])
 
     def clone(self, cloned_hubs):
         return NotImplemented
@@ -100,17 +100,14 @@ class Hub:
         else:
             return []
 
-    def clone_hub_tree(self, mapped_hubs, cross_hub, mount_node):
+    def clone_hub_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
+        hub = mapped_hubs[self] if self in mapped_hubs else Hub()
+        all_hubs += [hub]
+
         if cross_hub == self:
-            hub = Hub()
             hub.src = mount_node
-        else:
-            if self in mapped_hubs:
-                hub = mapped_hubs[self]
-            else:
-                hub = Hub()
-            if self.src:
-                hub.src = self.src.clone_node_tree(mapped_hubs)
+        elif self.src:
+            hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs)
 
         return hub
 
@@ -121,6 +118,7 @@ class Cell:
         self.rating = None
         self.in_hubs = None
         self.out_hubs = None
+        self.all_hubs = None
 
     @classmethod
     def create(cls, params):
@@ -128,6 +126,7 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = [Hub() for i in range(0, params.o_num)]
+        cell.all_hubs = cell.in_hubs + cell.out_hubs
 
         for out_hub in cell.out_hubs:
             out_hub.src = Operation.random_operation(cell.in_hubs)
@@ -148,6 +147,7 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = []
+        cell.all_hubs = [cell.in_hubs]
 
         mapped_hubs = dict()
 
@@ -162,8 +162,8 @@ class Cell:
             a_hub = a_out_hubs.get_random_hub()
             cross_hub = b_out_hubs.get_random_hub()
 
-            a_small_node_tree = a_hub.src.clone_node_tree(mapped_hubs, None, None)
-            b_large_hub_tree = b_out_hubs.clone_hub_tree(mapped_hubs, cross_hub, a_small_node_tree)
+            a_small_node_tree = a_hub.src.clone_node_tree(cell.all_hubs, mapped_hubs, None, None)
+            b_large_hub_tree = b_out_hubs.clone_hub_tree(cell.all_hubs, mapped_hubs, cross_hub, a_small_node_tree)
 
             cell.out_hubs += [b_large_hub_tree]
 
