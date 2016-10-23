@@ -20,6 +20,7 @@ class TestCell(unittest.TestCase):
         f = Cell.create(params)
 
         child = Cell.cross(params, m, f)
+        child.mutate()
 
         child.calc([1, 2, 3])
 

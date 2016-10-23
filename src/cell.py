@@ -34,8 +34,6 @@ class OpLink(Operation):
 
         op_link = OpLink([hub])
 
-        op_link.hubs[0].outs += [op_link]
-
         return op_link
 
     def clone(self, hubs):
@@ -108,7 +106,7 @@ class Hub:
         if cross_hub == self:
             hub.src = mount_node
         elif self.src:
-            hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs)
+            hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs, None, None)
 
         return hub
 
@@ -147,7 +145,7 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = []
-        cell.all_hubs = [cell.in_hubs]
+        cell.all_hubs = cell.in_hubs
 
         mapped_hubs = dict()
 
@@ -188,4 +186,12 @@ class Cell:
         return self.all_hubs[hub_ind]
 
     def mutate(self):
-        pass
+        if self.params.mutation_probability > random.random():
+            random_hub = self.get_random_hub()
+            src_node = random_hub.src
+            if src_node:
+                new_hub = Hub()
+                self.all_hubs += [new_hub]
+                new_hub.src = src_node
+                op = Operation.random_operation([new_hub])
+                random_hub.src = op
