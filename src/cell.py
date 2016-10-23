@@ -110,7 +110,7 @@ class Hub:
 
         return hub
 
-    def mutate(self, cell):
+    def mutate_hub(self, cell):
         src_node = self.src
         if src_node:
             new_hub = Hub()
@@ -181,7 +181,7 @@ class Cell:
 
         results = [ot.calc() for ot in self.out_hubs]
 
-        self.rating = self.params.fn(results)
+        self.rating = self.params.fn(self, results)
 
     def get_outputs(self):
         return [ot.val for ot in self.out_hubs]
@@ -197,4 +197,4 @@ class Cell:
     def mutate(self):
         if self.params.mutation_probability > random.random():
             random_hub = self.get_random_hub()
-            random_hub.mutate(self)
+            random_hub.mutate_hub(self)

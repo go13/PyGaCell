@@ -4,7 +4,7 @@ from src.cell import Cell
 from src.ga import Params
 
 
-def fn(x):
+def fn(cell, x):
     return 1
 
 
