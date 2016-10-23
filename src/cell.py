@@ -12,10 +12,12 @@ class Operation:
 
     @classmethod
     def random_operation(cls, hubs):
+        op_ind = random.randint(0, 2)
         return {
             0: OpLink.random_operation,
             1: OpSum.random_operation,
-        }[random.randint(0, 1)](hubs)
+            2: OpMul.random_operation,
+        }[op_ind](hubs)
 
     def clone_hubs(self, mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node):
         return [hub.clone_hub_tree(mapped_hubs, hub_pairs, in_hub_pairs, node_pairs, cross_hub, mount_node) for hub in self.hubs]
@@ -66,6 +68,18 @@ class OpSum(Operation):
 
     def clone(self, hubs):
         return OpSum(hubs)
+
+    def calc(self):
+        return sum([h.calc() for h in self.hubs])
+
+
+class OpMul(Operation):
+    @classmethod
+    def random_operation(cls, hubs):
+        return OpMul(hubs)
+
+    def clone(self, hubs):
+        return OpMul(hubs)
 
     def calc(self):
         return sum([h.calc() for h in self.hubs])
