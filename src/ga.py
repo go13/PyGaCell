@@ -17,14 +17,14 @@ class GA:
         self.params = params
         self.population = [Cell.create(params) for i in range(params.population_size)]
 
-    def step(self):
-        self.calc()
+    def step(self, inputs):
+        self.calc(inputs)
         self.crossover()
         self.mutate()
 
-    def calc(self):
+    def calc(self, inputs):
         for i in self.population:
-            i.calc([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+            i.calc(inputs)
 
         self.population = sorted(self.population, key=lambda x: x.rating, reverse=True)
 
