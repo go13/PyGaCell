@@ -82,7 +82,10 @@ class OpMul(Operation):
         return OpMul(hubs)
 
     def calc(self):
-        return sum([h.calc() for h in self.hubs])
+        res = 1
+        for h in self.hubs:
+            res = res * h.calc()
+        return res
 
 
 class Hub:
