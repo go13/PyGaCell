@@ -102,6 +102,7 @@ class Hub:
 
     def clone_hub_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
         hub = mapped_hubs[self] if self in mapped_hubs else Hub()
+
         all_hubs += [hub]
 
         if cross_hub == self:
