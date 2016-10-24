@@ -23,14 +23,17 @@ class Operation:
             2: OpMul.random_operation,
         }[op_ind](hubs)
 
-    def clone_node_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
-        return self.clone([hub.clone_hub_tree(all_hubs, mapped_hubs, cross_hub, mount_node) for hub in self.hubs])
+    def clone_node_tree(self, mapped_hubs, cross_hub, mount_node):
+        return self.clone([hub.clone_hub_tree(mapped_hubs, cross_hub, mount_node) for hub in self.hubs])
 
     def clone(self, cloned_hubs):
         return NotImplemented
 
 
 class OpLink(Operation):
+    def __str__(self):
+        return "OpLink(" + ", ".join([str(h) for h in self.hubs]) + ")"
+
     @classmethod
     def random_operation(cls, hubs):
         hub_ind = random.randint(0, len(hubs) - 1)
@@ -48,6 +51,9 @@ class OpLink(Operation):
 
 
 class OpSum(Operation):
+    def __str__(self):
+        return "OpSum(" + ", ".join([str(h) for h in self.hubs]) + ")"
+
     @classmethod
     def random_operation(cls, hubs):
         return OpSum(hubs)
@@ -60,6 +66,9 @@ class OpSum(Operation):
 
 
 class OpMul(Operation):
+    def __str__(self):
+        return "OpMul(" + ", ".join([str(h) for h in self.hubs]) + ")"
+
     @classmethod
     def random_operation(cls, hubs):
         return OpMul(hubs)
@@ -78,6 +87,9 @@ class Hub:
     def __init__(self):
         self.val = None
         self.src = None
+
+    def __str__(self):
+        return "Hub(val = " + str(self.val) + ", " + str(self.src) + ")"
 
     def calc(self):
         return self.val if self.src is None else self.src.calc()
@@ -107,15 +119,13 @@ class Hub:
         else:
             return []
 
-    def clone_hub_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
+    def clone_hub_tree(self, mapped_hubs, cross_hub, mount_node):
         hub = mapped_hubs[self] if self in mapped_hubs else Hub()
-
-        all_hubs += [hub]
 
         if cross_hub == self:
             hub.src = mount_node
         elif self.src:
-            hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs, None, None)
+            hub.src = self.src.clone_node_tree(mapped_hubs, None, None)
 
         return hub
 
@@ -137,19 +147,20 @@ class Hub:
 
     def add_random_operation(self, cell):
         new_hub = Hub()
-        cell.all_hubs += [new_hub]
         new_hub.src = self.src
         op = Operation.random_operation([new_hub])
         self.src = op
 
 
 class Cell:
+    def __str__(self):
+        return "Cell (" + ", ".join([str(h) for h in self.out_hubs]) + ")"
+
     def __init__(self, params):
         self.params = params
         self.rating = None
         self.in_hubs = None
         self.out_hubs = None
-        self.all_hubs = None
 
     @classmethod
     def create(cls, params):
@@ -157,7 +168,6 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = [Hub() for i in range(0, params.o_num)]
-        cell.all_hubs = cell.in_hubs + cell.out_hubs
 
         for out_hub in cell.out_hubs:
             out_hub.src = Operation.random_operation(cell.in_hubs)
@@ -177,7 +187,6 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = []
-        cell.all_hubs = cell.in_hubs
 
         mapped_hubs = dict()
 
@@ -192,8 +201,8 @@ class Cell:
             a_hub = a_out_hubs.get_random_hub()
             cross_hub = b_out_hubs.get_random_hub()
 
-            a_small_node_tree = a_hub.src.clone_node_tree(cell.all_hubs, mapped_hubs, None, None)
-            b_large_hub_tree = b_out_hubs.clone_hub_tree(cell.all_hubs, mapped_hubs, cross_hub, a_small_node_tree)
+            a_small_node_tree = a_hub.src.clone_node_tree(mapped_hubs, None, None)
+            b_large_hub_tree = b_out_hubs.clone_hub_tree(mapped_hubs, cross_hub, a_small_node_tree)
 
             cell.out_hubs += [b_large_hub_tree]
 
