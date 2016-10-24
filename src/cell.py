@@ -111,6 +111,12 @@ class Hub:
         return hub
 
     def mutate_hub(self, cell):
+        op_ind = random.randint(0, 0)
+        return {
+            0: self.add_random_operation,
+        }[op_ind](cell)
+
+    def add_random_operation(self, cell):
         src_node = self.src
         if src_node:
             new_hub = Hub()
