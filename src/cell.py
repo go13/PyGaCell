@@ -212,8 +212,12 @@ class Cell:
 
     def mutate(self):
         if self.params.mutation_probability > random.random():
-            rnd_out_hub_ind = random.randint(0, len(self.out_hubs) - 1)
-            rnd_out_hub = self.out_hubs[rnd_out_hub_ind]
+            rnd_out_hub = self.get_random_out_hub()
 
             random_hub = rnd_out_hub.get_random_hub(include_inputs=False)
             random_hub.mutate_hub(self)
+
+    def get_random_out_hub(self):
+        rnd_out_hub_ind = random.randint(0, len(self.out_hubs) - 1)
+        rnd_out_hub = self.out_hubs[rnd_out_hub_ind]
+        return rnd_out_hub
