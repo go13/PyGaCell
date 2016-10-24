@@ -133,7 +133,7 @@ class Hub:
             self.src.link(random_sub_hub)
 
     def change_random_operation(self, cell):
-        pass
+        self.src = Operation.random_operation(self.src.hubs)
 
     def add_random_operation(self, cell):
         new_hub = Hub()
