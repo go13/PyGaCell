@@ -120,10 +120,11 @@ class Hub:
         return hub
 
     def mutate_hub(self, cell):
-        op_ind = random.randint(0, 1)
+        op_ind = random.randint(0, 2)
         return {
             0: self.add_random_operation,
             1: self.add_random_link,
+            2: self.change_random_operation,
         }[op_ind](cell)
 
     def add_random_link(self, cell):
@@ -131,11 +132,13 @@ class Hub:
         if not self.src.are_linked(random_sub_hub):
             self.src.link(random_sub_hub)
 
+    def change_random_operation(self, cell):
+        pass
+
     def add_random_operation(self, cell):
-        src_node = self.src
         new_hub = Hub()
         cell.all_hubs += [new_hub]
-        new_hub.src = src_node
+        new_hub.src = self.src
         op = Operation.random_operation([new_hub])
         self.src = op
 
