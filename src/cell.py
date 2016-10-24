@@ -4,8 +4,6 @@ import random
 class Operation:
     def __init__(self, hubs):
         self.hubs = hubs
-        for h in hubs:
-            h.outs += [self]
 
     def calc(self):
         return NotImplemented
@@ -15,7 +13,6 @@ class Operation:
 
     def link(self, hub):
         self.hubs += [hub]
-        hub.outs += [self]
 
     @classmethod
     def random_operation(cls, hubs):
@@ -79,7 +76,6 @@ class OpMul(Operation):
 
 class Hub:
     def __init__(self):
-        self.outs = []
         self.val = None
         self.src = None
 
