@@ -10,6 +10,13 @@ class Operation:
     def calc(self):
         return NotImplemented
 
+    def are_linked(self, hub):
+        return hub in self.hubs
+
+    def link(self, hub):
+        self.hubs += [hub]
+        hub.outs += [self]
+
     @classmethod
     def random_operation(cls, hubs):
         op_ind = random.randint(0, 2)
@@ -125,15 +132,16 @@ class Hub:
 
     def add_random_link(self, cell):
         random_sub_hub = self.get_random_hub(include_inputs=True, include_self=False)
+        if not self.src.are_linked(random_sub_hub):
+            self.src.link(random_sub_hub)
 
     def add_random_operation(self, cell):
         src_node = self.src
-        if src_node:
-            new_hub = Hub()
-            cell.all_hubs += [new_hub]
-            new_hub.src = src_node
-            op = Operation.random_operation([new_hub])
-            self.src = op
+        new_hub = Hub()
+        cell.all_hubs += [new_hub]
+        new_hub.src = src_node
+        op = Operation.random_operation([new_hub])
+        self.src = op
 
 
 class Cell:
@@ -211,5 +219,5 @@ class Cell:
             rnd_out_hub_ind = random.randint(0, len(self.out_hubs) - 1)
             rnd_out_hub = self.out_hubs[rnd_out_hub_ind]
 
-            random_hub = rnd_out_hub.get_random_hub(include_inputs=True)
+            random_hub = rnd_out_hub.get_random_hub(include_inputs=False)
             random_hub.mutate_hub(self)
