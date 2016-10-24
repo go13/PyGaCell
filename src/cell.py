@@ -79,7 +79,7 @@ class Hub:
     def calc(self):
         return self.val if self.src is None else self.src.calc()
 
-    def get_random_path(self, include_inputs):
+    def get_random_path(self, include_inputs, include_self):
         path = []
         nxt = self
         while nxt.src:
@@ -90,10 +90,13 @@ class Hub:
         if include_inputs and not nxt.src:
             path += [nxt]
 
+        if not include_self and self in path:
+            path.remove(self)
+
         return path
 
-    def get_random_hub(self, include_inputs=False):
-        random_path = self.get_random_path(include_inputs)
+    def get_random_hub(self, include_inputs=False, include_self=True):
+        random_path = self.get_random_path(include_inputs, include_self)
         path_len = len(random_path)
         if path_len > 0:
             hub_ind = random.randint(0, path_len - 1)
@@ -117,11 +120,11 @@ class Hub:
         op_ind = random.randint(0, 1)
         return {
             0: self.add_random_operation,
-            1: self.add_random_operation,
+            1: self.add_random_link,
         }[op_ind](cell)
 
     def add_random_link(self, cell):
-        pass
+        random_sub_hub = self.get_random_hub(include_inputs=True, include_self=False)
 
     def add_random_operation(self, cell):
         src_node = self.src
