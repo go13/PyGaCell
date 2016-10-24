@@ -211,9 +211,9 @@ class Cell:
     def calc(self, inputs):
         self.set_inputs(inputs)
 
-        results = [ot.calc() for ot in self.out_hubs]
+        outputs = [ot.calc() for ot in self.out_hubs]
 
-        self.rating = self.params.fn(self, results)
+        self.rating = self.params.fn(self, inputs, outputs)
 
     def get_outputs(self):
         return [ot.val for ot in self.out_hubs]
