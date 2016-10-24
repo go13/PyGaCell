@@ -79,7 +79,7 @@ class Hub:
     def calc(self):
         return self.val if self.src is None else self.src.calc()
 
-    def get_random_path(self):
+    def get_random_path(self, include_inputs):
         path = []
         nxt = self
         while nxt.src:
@@ -87,10 +87,13 @@ class Hub:
             hub_ind = random.randint(0, len(nxt.src.hubs) - 1)
             nxt = nxt.src.hubs[hub_ind]
 
+        if include_inputs and not nxt.src:
+            path += [nxt]
+
         return path
 
-    def get_random_hub(self):
-        random_path = self.get_random_path()
+    def get_random_hub(self, include_inputs=False):
+        random_path = self.get_random_path(include_inputs)
         path_len = len(random_path)
         if path_len > 0:
             hub_ind = random.randint(0, path_len - 1)
@@ -111,10 +114,14 @@ class Hub:
         return hub
 
     def mutate_hub(self, cell):
-        op_ind = random.randint(0, 0)
+        op_ind = random.randint(0, 1)
         return {
             0: self.add_random_operation,
+            1: self.add_random_operation,
         }[op_ind](cell)
+
+    def add_random_link(self, cell):
+        pass
 
     def add_random_operation(self, cell):
         src_node = self.src
@@ -196,11 +203,10 @@ class Cell:
         for i in range(0, self.params.i_num):
             self.in_hubs[i].val = inputs[i]
 
-    def get_random_hub(self):
-        hub_ind = random.randint(0, len(self.all_hubs) - 1)
-        return self.all_hubs[hub_ind]
-
     def mutate(self):
         if self.params.mutation_probability > random.random():
-            random_hub = self.get_random_hub()
+            rnd_out_hub_ind = random.randint(0, len(self.out_hubs) - 1)
+            rnd_out_hub = self.out_hubs[rnd_out_hub_ind]
+
+            random_hub = rnd_out_hub.get_random_hub(include_inputs=True)
             random_hub.mutate_hub(self)
