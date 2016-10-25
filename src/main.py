@@ -21,7 +21,7 @@ def fn(cell, experiment_number):
 
     return rating
 
-ga = GA(Params(2, 1, fn, 50, 10, 1, 100))
+ga = GA(Params(2, 1, fn, 20, 4, 1, 100))
 
 for i in range(1000):
     print "step - ", i

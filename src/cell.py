@@ -16,11 +16,12 @@ class Operation:
 
     @classmethod
     def random_operation(cls, hubs):
-        op_ind = random.randint(0, 2)
+        op_ind = random.randint(0, 3)
         return {
             0: OpLink.random_operation,
             1: OpSum.random_operation,
             2: OpMul.random_operation,
+            3: OpIntConst.random_operation,
         }[op_ind](hubs)
 
     def clone_node_tree(self, mapped_hubs, cross_hub, mount_node):
@@ -28,6 +29,27 @@ class Operation:
 
     def clone(self, cloned_hubs):
         return NotImplemented
+
+
+class OpIntConst(Operation):
+    val = 0
+
+    def __str__(self):
+        return "OpConst(" + ", ".join([str(h) for h in self.hubs]) + ")"
+
+    @classmethod
+    def random_operation(cls, hubs):
+        op_int_const = OpIntConst(hubs)
+        op_int_const.val = random.randint(-9, 9)
+        return op_int_const
+
+    def clone(self, hubs):
+        op_int_const = OpIntConst(hubs)
+        op_int_const.val = self.val
+        return op_int_const
+
+    def calc(self):
+        return self.val
 
 
 class OpLink(Operation):
@@ -89,7 +111,7 @@ class Hub:
         self.src = None
 
     def __str__(self):
-        return "Hub(val = " + str(self.val) + ", " + str(self.src) + ")"
+        return "Hub (val = " + str(self.val) + ", " + str(self.src) + ")"
 
     def calc(self):
         if self.src is not None:
@@ -141,7 +163,7 @@ class Hub:
 
     def add_random_link(self, cell):
         random_sub_hub = self.get_random_hub(include_inputs=True, include_self=False)
-        if not self.src.are_linked(random_sub_hub):
+        if type(self.src) != OpIntConst and not self.src.are_linked(random_sub_hub):
             self.src.link(random_sub_hub)
 
     def change_random_operation(self, cell):
