@@ -3,7 +3,8 @@ from random import random
 
 
 class Params:
-    def __init__(self, i_num, o_num, fn, population_size=50, untouchable_number=10, mutation_probability=0.1):
+    def __init__(self, i_num, o_num, fn, population_size=50, untouchable_number=10, mutation_probability=0.1, experiment_number=10):
+        self.experiment_number = experiment_number
         self.mutation_probability = mutation_probability
         self.population_size = population_size
         self.untouchable_number = untouchable_number
@@ -18,6 +19,9 @@ class GA:
         self.population = [Cell.create(params) for i in range(params.population_size)]
 
     def step(self):
+        self.calc().crossover().mutate()
+
+    def grow(self):
         self.calc().crossover().mutate()
 
     def calc(self):

@@ -211,7 +211,10 @@ class Cell:
         return cell
 
     def rate(self):
-        self.rating = self.params.fn(self)
+        experiment_rates = \
+            [self.params.fn(self, experiment_number) for experiment_number in range(1, self.params.experiment_number)]
+
+        self.rating = sum(experiment_rates) / float(len(experiment_rates))
 
     def calc(self):
         return [ot.calc() for ot in self.out_hubs]

@@ -6,7 +6,7 @@ from ga import GA, Params
 print("PyGACell")
 
 
-def fn(cell):
+def fn(cell, experiment_number):
     x = (random.random() - 0.5) * 4
     cell.set_inputs([x, x])
 
@@ -16,13 +16,18 @@ def fn(cell):
 
     rating = exp(-(res - y) * (res - y))
 
-    print "x = ", x, " y = ", y, " res = ", res, " rating = ", rating
+    #if experiment_number == 1:
+    #    print "x = ", x, " y = ", y, " res = ", res, " rating = ", rating
 
     return rating
 
-ga = GA(Params(2, 1, fn, 50, 10, 1))
+ga = GA(Params(2, 1, fn, 50, 10, 1, 100))
 
 for i in range(1000):
     print "step - ", i
-    ga.step()
+    ga.calc()
+
+    print ga.population[0].rating
+
+    ga.grow()
     print
