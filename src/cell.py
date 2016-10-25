@@ -92,7 +92,9 @@ class Hub:
         return "Hub(val = " + str(self.val) + ", " + str(self.src) + ")"
 
     def calc(self):
-        return self.val if self.src is None else self.src.calc()
+        if self.src is not None:
+            self.val = self.src.calc()
+        return self.val
 
     def get_random_path(self, include_inputs, include_self):
         path = []
@@ -208,12 +210,11 @@ class Cell:
 
         return cell
 
-    def calc(self, inputs):
-        self.set_inputs(inputs)
+    def rate(self):
+        self.rating = self.params.fn(self)
 
-        outputs = [ot.calc() for ot in self.out_hubs]
-
-        self.rating = self.params.fn(self, inputs, outputs)
+    def calc(self):
+        return [ot.calc() for ot in self.out_hubs]
 
     def get_outputs(self):
         return [ot.val for ot in self.out_hubs]

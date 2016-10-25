@@ -6,11 +6,13 @@ from ga import GA, Params
 print("PyGACell")
 
 
-def fn(cell, inputs, outputs):
-    x = inputs[0]
-    y = - x * x + 4
+def fn(cell):
+    x = (random.random() - 0.5) * 4
+    cell.set_inputs([x, x])
 
-    res = outputs[0]
+    res = cell.calc()[0]
+
+    y = - x * x + 4
 
     rating = exp(-(res - y) * (res - y))
 
@@ -22,6 +24,5 @@ ga = GA(Params(2, 1, fn, 50, 10, 1))
 
 for i in range(1000):
     print "step - ", i
-    x = (random.random() - 0.5) * 4
-    ga.step([x, x])
+    ga.step()
     print
