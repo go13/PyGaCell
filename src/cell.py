@@ -186,6 +186,7 @@ class Cell:
     def __init__(self, params):
         self.params = params
         self.rating = None
+        self.pure_rating = None
         self.in_hubs = None
         self.out_hubs = None
         self.all_hubs = None
@@ -244,7 +245,11 @@ class Cell:
 
         hub_number_tax = 1 if self.get_hub_number() < self.params.hub_degrade_num else self.params.hub_degrade_tax
 
-        self.rating = hub_number_tax * sum(experiment_rates) / float(len(experiment_rates))
+        pure_rate = sum(experiment_rates) / float(len(experiment_rates))
+
+        self.pure_rating = pure_rate
+
+        self.rating = hub_number_tax * pure_rate
 
     def calc(self):
         return [ot.calc() for ot in self.out_hubs]
