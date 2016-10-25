@@ -12,7 +12,8 @@ class Operation:
         return hub in self.hubs
 
     def link(self, hub):
-        self.hubs += [hub]
+        if not self.are_linked(hub):
+            self.hubs += [hub]
 
     @classmethod
     def random_operation(cls, hubs):
@@ -51,6 +52,9 @@ class OpIntConst(Operation):
     def calc(self):
         return self.val
 
+    def link(self, hub):
+        pass
+
 
 class OpLink(Operation):
     def __str__(self):
@@ -70,6 +74,9 @@ class OpLink(Operation):
 
     def calc(self):
         return self.hubs[0].calc()
+
+    def link(self, hub):
+        self.hubs = [hub]
 
 
 class OpSum(Operation):
@@ -141,17 +148,19 @@ class Hub:
             hub_ind = random.randint(0, path_len - 1)
             return random_path[hub_ind]
         else:
-            return []
+            return None
 
     def clone_hub_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
-        hub = mapped_hubs[self] if self in mapped_hubs else Hub()
+        if self in mapped_hubs:
+            hub = mapped_hubs[self]
+        else:
+            hub = Hub()
+            all_hubs += [hub]
 
-        all_hubs += [hub]
-
-        if cross_hub == self:
-            hub.src = mount_node
-        elif self.src:
-            hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs, None, None)
+            if cross_hub == self:
+                hub.src = mount_node
+            elif self.src:
+                hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs, None, None)
 
         return hub
 
@@ -164,9 +173,13 @@ class Hub:
         }[op_ind](cell)
 
     def add_random_link(self, cell):
-        random_sub_hub = self.get_random_hub(include_inputs=True, include_self=False)
-        if type(self.src) != OpIntConst and not self.src.are_linked(random_sub_hub):
-            self.src.link(random_sub_hub)
+        random_path = self.get_random_path(False, False) + cell.in_hubs
+
+        path_len = len(random_path)
+        hub_ind = random.randint(0, path_len - 1)
+        random_hub = random_path[hub_ind]
+
+        self.src.link(random_hub)
 
     def change_random_operation(self, cell):
         self.src = Operation.random_operation(self.src.hubs)
@@ -217,7 +230,7 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = []
-        cell.all_hubs = cell.in_hubs
+        cell.all_hubs = list(cell.in_hubs)
 
         mapped_hubs = dict()
 
@@ -268,7 +281,7 @@ class Cell:
         if self.params.mutation_probability > random.random():
             rnd_out_hub = self.get_random_out_hub()
 
-            random_hub = rnd_out_hub.get_random_hub(include_inputs=False)
+            random_hub = rnd_out_hub.get_random_hub()
             random_hub.mutate_hub(self)
 
     def get_random_out_hub(self):
