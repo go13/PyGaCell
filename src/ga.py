@@ -3,7 +3,11 @@ from random import random
 
 
 class Params:
-    def __init__(self, i_num, o_num, fn, population_size=50, untouchable_number=10, mutation_probability=0.1, experiment_number=10):
+    def __init__(self, i_num, o_num, fn, population_size=50, untouchable_number=10,
+                 mutation_probability=0.1, experiment_number=10, hub_degrade_num=20,
+                 hub_degrade_tax=0.6):
+        self.hub_degrade_tax = hub_degrade_tax
+        self.hub_degrade_num = hub_degrade_num
         self.experiment_number = experiment_number
         self.mutation_probability = mutation_probability
         self.population_size = population_size

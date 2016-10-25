@@ -24,8 +24,8 @@ class Operation:
             3: OpIntConst.random_operation,
         }[op_ind](hubs)
 
-    def clone_node_tree(self, mapped_hubs, cross_hub, mount_node):
-        return self.clone([hub.clone_hub_tree(mapped_hubs, cross_hub, mount_node) for hub in self.hubs])
+    def clone_node_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
+        return self.clone([hub.clone_hub_tree(all_hubs, mapped_hubs, cross_hub, mount_node) for hub in self.hubs])
 
     def clone(self, cloned_hubs):
         return NotImplemented
@@ -143,13 +143,15 @@ class Hub:
         else:
             return []
 
-    def clone_hub_tree(self, mapped_hubs, cross_hub, mount_node):
+    def clone_hub_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
         hub = mapped_hubs[self] if self in mapped_hubs else Hub()
+
+        all_hubs += [hub]
 
         if cross_hub == self:
             hub.src = mount_node
         elif self.src:
-            hub.src = self.src.clone_node_tree(mapped_hubs, None, None)
+            hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs, None, None)
 
         return hub
 
@@ -171,6 +173,7 @@ class Hub:
 
     def add_random_operation(self, cell):
         new_hub = Hub()
+        cell.all_hubs += [new_hub]
         new_hub.src = self.src
         op = Operation.random_operation([new_hub])
         self.src = op
@@ -185,6 +188,7 @@ class Cell:
         self.rating = None
         self.in_hubs = None
         self.out_hubs = None
+        self.all_hubs = None
 
     @classmethod
     def create(cls, params):
@@ -192,6 +196,7 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = [Hub() for i in range(0, params.o_num)]
+        cell.all_hubs = cell.in_hubs + cell.out_hubs
 
         for out_hub in cell.out_hubs:
             out_hub.src = Operation.random_operation(cell.in_hubs)
@@ -211,6 +216,7 @@ class Cell:
 
         cell.in_hubs = [Hub() for i in range(0, params.i_num)]
         cell.out_hubs = []
+        cell.all_hubs = cell.in_hubs
 
         mapped_hubs = dict()
 
@@ -225,8 +231,8 @@ class Cell:
             a_hub = a_out_hubs.get_random_hub()
             cross_hub = b_out_hubs.get_random_hub()
 
-            a_small_node_tree = a_hub.src.clone_node_tree(mapped_hubs, None, None)
-            b_large_hub_tree = b_out_hubs.clone_hub_tree(mapped_hubs, cross_hub, a_small_node_tree)
+            a_small_node_tree = a_hub.src.clone_node_tree(cell.all_hubs, mapped_hubs, None, None)
+            b_large_hub_tree = b_out_hubs.clone_hub_tree(cell.all_hubs, mapped_hubs, cross_hub, a_small_node_tree)
 
             cell.out_hubs += [b_large_hub_tree]
 
@@ -236,10 +242,15 @@ class Cell:
         experiment_rates = \
             [self.params.fn(self, experiment_number) for experiment_number in range(1, self.params.experiment_number)]
 
-        self.rating = sum(experiment_rates) / float(len(experiment_rates))
+        hub_number_tax = 1 if self.get_hub_number() < self.params.hub_degrade_num else self.params.hub_degrade_tax
+
+        self.rating = hub_number_tax * sum(experiment_rates) / float(len(experiment_rates))
 
     def calc(self):
         return [ot.calc() for ot in self.out_hubs]
+
+    def get_hub_number(self):
+        return len(self.all_hubs)
 
     def get_outputs(self):
         return [ot.val for ot in self.out_hubs]
