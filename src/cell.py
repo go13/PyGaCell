@@ -31,12 +31,16 @@ class Operation:
     def clone(self, cloned_hubs):
         return NotImplemented
 
+    def remove(self, cell):
+        for h in self.hubs:
+            h.remove(cell)
+
 
 class OpIntConst(Operation):
     val = 0
 
     def __str__(self):
-        return "OpConst(" + ", ".join([str(h) for h in self.hubs]) + ")"
+        return "OpConst val = " + str(self.val) + "()"
 
     @classmethod
     def random_operation(cls, hubs):
@@ -118,7 +122,7 @@ class Hub:
         self.src = None
 
     def __str__(self):
-        return "Hub (val = " + str(self.val) + ", " + str(self.src) + ")"
+        return "Hub val = " + str(self.val) + " (" + str(self.src) + ")"
 
     def calc(self):
         if self.src is not None:
@@ -164,13 +168,32 @@ class Hub:
 
         return hub
 
+    def remove(self, cell):
+        if self.src:
+            if self in cell.all_hubs:
+                cell.all_hubs.remove(self)
+            self.src.remove(cell)
+
     def mutate_hub(self, cell):
-        op_ind = random.randint(0, 2)
+        op_ind = random.randint(0, 5)
         return {
             0: self.add_random_operation,
+            4: self.add_random_operation,
             1: self.add_random_link,
+            5: self.change_random_operation,
             2: self.change_random_operation,
+            3: self.remove_random_operation,
         }[op_ind](cell)
+
+    def remove_random_operation(self, cell):
+        hub = self.get_random_hub(include_self=True)
+        inp_number = len(hub.src.hubs)
+        if inp_number > 1:
+            input_ind = random.randint(0, inp_number - 1)
+            hub_to_remove = hub.src.hubs[input_ind]
+            if hub_to_remove.src is not None:
+                hub.src.hubs.remove(hub_to_remove)
+                hub_to_remove.remove(cell)
 
     def add_random_link(self, cell):
         random_path = self.get_random_path(False, False) + cell.in_hubs
