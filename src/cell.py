@@ -122,7 +122,7 @@ class Hub:
         self.src = None
 
     def __str__(self):
-        return "Hub val = " + str(self.val) + " (" + str(self.src) + ")"
+        return ("In" if self.src is None else "Hub") + " val = " + str(self.val) + " (" + str(self.src) + ")"
 
     def calc(self):
         if self.src is not None:

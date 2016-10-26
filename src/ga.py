@@ -26,7 +26,9 @@ class GA:
         self.calc().crossover().mutate()
 
     def grow(self):
-        self.calc().crossover().mutate()
+        self.calc().crossover()
+        for i in range(0, 3):
+            self.mutate()
 
     def calc(self):
         for i in self.population:
