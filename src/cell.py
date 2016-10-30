@@ -1,5 +1,5 @@
 import random
-
+from math import tanh
 
 class Operation:
     def __init__(self, hubs):
@@ -17,12 +17,11 @@ class Operation:
 
     @classmethod
     def random_operation(cls, hubs):
-        op_ind = random.randint(0, 3)
+        op_ind = random.randint(0, 2)
         return {
             0: OpLink.random_operation,
             1: OpSum.random_operation,
             2: OpMul.random_operation,
-            3: OpIntConst.random_operation,
         }[op_ind](hubs)
 
     def clone_node_tree(self, all_hubs, mapped_hubs, cross_hub, mount_node):
@@ -40,7 +39,7 @@ class OpIntConst(Operation):
     val = 0
 
     def __str__(self):
-        return "OpConst val = " + str(self.val) + "()"
+        return "OpIntConst val = " + str(self.val) + "(" + ", ".join([str(h) for h in self.hubs]) + ")"
 
     @classmethod
     def random_operation(cls, hubs):
@@ -132,7 +131,7 @@ class Hub:
     def get_random_path(self, include_inputs, include_self):
         path = []
         nxt = self
-        while nxt.src:
+        while nxt.src and len(nxt.src.hubs) > 0:
             path += [nxt]
             hub_ind = random.randint(0, len(nxt.src.hubs) - 1)
             nxt = nxt.src.hubs[hub_ind]
@@ -162,6 +161,8 @@ class Hub:
             all_hubs += [hub]
 
             if cross_hub == self:
+                if type(mount_node) is OpIntConst:
+                    mount_node = OpLink(mount_node.hubs[0])
                 hub.src = mount_node
             elif self.src:
                 hub.src = self.src.clone_node_tree(all_hubs, mapped_hubs, None, None)
@@ -175,15 +176,24 @@ class Hub:
             self.src.remove(cell)
 
     def mutate_hub(self, cell):
-        op_ind = random.randint(0, 5)
+        op_ind = random.randint(0, 6)
         return {
             0: self.add_random_operation,
-            4: self.add_random_operation,
-            1: self.add_random_link,
-            5: self.change_random_operation,
-            2: self.change_random_operation,
-            3: self.remove_random_operation,
+            1: self.add_random_operation,
+            2: self.add_random_link,
+            3: self.change_random_operation,
+            4: self.change_random_operation,
+            5: self.remove_random_operation,
+            6: self.add_random_constant,
         }[op_ind](cell)
+
+    def add_random_constant(self, cell):
+        hub = self.get_random_hub(include_self=True)
+        if type(hub.src) is not OpIntConst and type(hub.src) is not OpLink:
+            new_hub = Hub()
+            new_hub.src = OpIntConst([])
+            hub.src.hubs += [new_hub]
+            cell.all_hubs += [new_hub]
 
     def remove_random_operation(self, cell):
         hub = self.get_random_hub(include_self=True)
@@ -279,7 +289,9 @@ class Cell:
         experiment_rates = \
             [self.params.fn(self, experiment_number) for experiment_number in range(1, self.params.experiment_number)]
 
-        hub_number_tax = 1 if self.get_hub_number() < self.params.hub_degrade_num else self.params.hub_degrade_tax
+        hub_number_tax = (tanh(-(self.get_hub_number() - self.params.hub_degrade_num) / self.params.hub_degrade_tax) + 1) / 2
+
+        # hub_number_tax = 1 if self.get_hub_number() < self.params.hub_degrade_num else self.params.hub_degrade_tax
 
         pure_rate = sum(experiment_rates) / float(len(experiment_rates))
 
