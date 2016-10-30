@@ -287,7 +287,7 @@ class Cell:
 
     def rate(self):
         experiment_rates = \
-            [self.params.fn(self, experiment_number) for experiment_number in range(1, self.params.experiment_number)]
+            [self.params.fn(self) for experiment_number in range(1, self.params.experiment_number)]
 
         hub_number_tax = (tanh(-(self.get_hub_number() - self.params.hub_degrade_num) / self.params.hub_degrade_tax) + 1) / 2
 

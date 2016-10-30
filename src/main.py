@@ -6,7 +6,7 @@ from ga import GA, Params
 print("PyGACell")
 
 
-def fn(cell, experiment_number):
+def fn(cell):
     x = (random.random() - 0.5) * 10
     cell.set_inputs([x, x])
 
